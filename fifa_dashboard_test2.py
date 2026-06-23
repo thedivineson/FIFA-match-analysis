@@ -196,6 +196,39 @@ html, body, [class*="css"] {
 }
 .stSelectbox label { font-family: 'Montserrat', sans-serif; font-size: 0.68rem !important; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate) !important; font-weight: 600 !important; }
 
+/* Closed selectbox: selected value text + the typeahead search caret/text */
+[data-baseweb="select"] {
+    background: var(--card) !important;
+}
+[data-baseweb="select"] > div {
+    background: var(--card) !important;
+    color: var(--ink) !important;
+}
+[data-baseweb="select"] input {
+    color: var(--ink) !important;
+    caret-color: var(--ink) !important;
+    -webkit-text-fill-color: var(--ink) !important;
+}
+[data-baseweb="select"] svg { fill: var(--slate) !important; }
+
+/* Dropdown list popover (rendered in a portal, so it needs its own rules) */
+div[data-baseweb="popover"] ul[role="listbox"],
+div[data-baseweb="popover"] div[data-baseweb="menu"] {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 4px 14px rgba(26,31,28,0.12) !important;
+}
+div[data-baseweb="popover"] li[role="option"],
+div[data-baseweb="popover"] [role="option"] * {
+    background: var(--card) !important;
+    color: var(--ink) !important;
+}
+div[data-baseweb="popover"] li[role="option"]:hover,
+div[data-baseweb="popover"] li[aria-selected="true"] {
+    background: var(--bg2) !important;
+    color: var(--ink) !important;
+}
+
 /* ── Warning / info ── */
 .pred-warn {
     font-size: 0.7rem;
@@ -243,28 +276,28 @@ html, body, [class*="css"] {
 .shoot-top .st-name { font-family: 'Montserrat', sans-serif; font-size: 2.2rem; font-weight: 900; color: var(--ink); text-transform: uppercase; }
 .shoot-top .st-wins { font-size: 0.85rem; color: var(--slate); }
 
-/* ── Model metrics cards (Prediction tab) ── */
+/* ── Model metrics cards (Prediction tab) — kept deliberately understated ── */
 .metric-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1rem 1.2rem;
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
     text-align: center;
-    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
+    box-shadow: 0 1px 2px rgba(26,31,28,0.03);
 }
 .metric-label {
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--slate);
     font-weight: 600;
 }
 .metric-val {
     font-family: 'Montserrat', sans-serif;
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: var(--green);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--slate);
 }
 
 /* dataframe styling tweak so tables sit on white cards, not dark */
@@ -779,40 +812,6 @@ with tab_predict:
     mc4.markdown(f'<div class="metric-card"><div class="metric-label">F1 Score</div><div class="metric-val">{model_metrics["f1"]*100:.1f}%</div></div>', unsafe_allow_html=True)
 
     st.markdown(f'<div class="pred-warn">Metrics computed on a held-out 20% test split (weighted average across draw / team1 / team2 classes).</div>', unsafe_allow_html=True)
-
-    mcol1, mcol2 = st.columns([1, 1])
-    with mcol1:
-        st.markdown('<div class="section-title" style="font-size:0.9rem">Confusion Matrix</div>', unsafe_allow_html=True)
-        cm = model_metrics["confusion_matrix"]
-        cm_labels = model_metrics["labels"]
-        fig_cm = go.Figure(data=go.Heatmap(
-            z=cm,
-            x=[f"Pred: {l}" for l in cm_labels],
-            y=[f"Actual: {l}" for l in cm_labels],
-            colorscale=[[0, BG2], [1, GOLD]],
-            text=cm,
-            texttemplate="%{text}",
-            textfont={"color": INK, "size": 14},
-            showscale=False,
-        ))
-        fig_cm.update_layout(**base_layout(height=320), yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig_cm, use_container_width=True)
-
-    with mcol2:
-        st.markdown('<div class="section-title" style="font-size:0.9rem">Per-Class Breakdown</div>', unsafe_allow_html=True)
-        report = model_metrics["report"]
-        report_rows = []
-        for lbl in cm_labels:
-            if lbl in report:
-                report_rows.append({
-                    "Class": lbl,
-                    "Precision": round(report[lbl]["precision"], 2),
-                    "Recall": round(report[lbl]["recall"], 2),
-                    "F1": round(report[lbl]["f1-score"], 2),
-                    "Support": int(report[lbl]["support"]),
-                })
-        report_df = pd.DataFrame(report_rows)
-        st.dataframe(report_df, use_container_width=True, hide_index=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════
