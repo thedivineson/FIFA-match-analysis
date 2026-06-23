@@ -5,6 +5,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    confusion_matrix,
+    classification_report,
+    precision_score,
+    recall_score,
+    f1_score,
+    accuracy_score,
+)
 import warnings
 import os
 warnings.filterwarnings("ignore")
@@ -23,35 +31,34 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CUSTOM CSS  — deep navy / gold / slate aesthetic
+# CUSTOM CSS  — chalk-white pitch / gold / forest-green aesthetic
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-    --navy:   #0A0A0A;
-    --navy2:  #1F2A24;
-    --navy3:  #1A2420;
-    --gold:   #C2A24D;
+    --bg:     #FAF9F4;
+    --bg2:    #F2F0E6;
+    --card:   #FFFFFF;
+    --gold:   #B8923A;
     --gold2:  #D4B56A;
-    --slate:  #9CA3AF;
-    --white:  #F5F5E9;
-    --muted:  #9CA3AF;
-    --card:   #1F2A24;
-    --border: #2A3830;
-    --cyan:   #134E4A;
-    --purple: #134E4A;
-    --pink:   #C2A24D;
+    --slate:  #6B7280;
+    --ink:    #1A1F1C;
+    --muted:  #6B7280;
+    --border: #E4E1D4;
+    --green:  #134E4A;
+    --green2: #0E3A37;
+    --red:    #C2453B;
 }
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
-    background-color: var(--navy) !important;
-    color: var(--white) !important;
+    background-color: var(--bg) !important;
+    color: var(--ink) !important;
 }
 
-.stApp { background-color: var(--navy) !important; }
+.stApp { background-color: var(--bg) !important; }
 
 /* Hide streamlit chrome */
 #MainMenu, footer, header { visibility: hidden; }
@@ -63,13 +70,13 @@ html, body, [class*="css"] {
     padding: 2.5rem 0 1.5rem;
     border-bottom: 2px solid var(--border);
     margin-bottom: 2rem;
-    background: radial-gradient(ellipse at 50% 0%, rgba(194,162,77,0.12) 0%, transparent 70%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(184,146,58,0.10) 0%, transparent 70%);
 }
 .hero h1 {
     font-family: 'Montserrat', sans-serif;
     font-size: 3.8rem;
     font-weight: 900;
-    color: var(--white);
+    color: var(--ink);
     letter-spacing: -0.01em;
     margin: 0;
     line-height: 1.05;
@@ -87,7 +94,7 @@ html, body, [class*="css"] {
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
-    background: var(--navy2);
+    background: var(--bg2);
     border-radius: 10px;
     padding: 4px;
     gap: 2px;
@@ -107,7 +114,7 @@ html, body, [class*="css"] {
 }
 .stTabs [aria-selected="true"] {
     background: var(--gold) !important;
-    color: var(--white) !important;
+    color: #FFFFFF !important;
     font-weight: 800 !important;
 }
 
@@ -120,13 +127,14 @@ html, body, [class*="css"] {
     padding: 1.2rem 1.4rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
 }
 .kpi-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--gold), var(--purple), transparent);
+    background: linear-gradient(90deg, var(--gold), var(--green), transparent);
 }
 .kpi-label {
     font-family: 'Montserrat', sans-serif;
@@ -141,14 +149,14 @@ html, body, [class*="css"] {
     font-family: 'Montserrat', sans-serif;
     font-size: 2rem;
     font-weight: 800;
-    color: var(--white);
+    color: var(--ink);
     line-height: 1;
 }
 .kpi-sub {
     font-size: 0.72rem;
     color: var(--gold);
     margin-top: 0.3rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* ── Section titles ── */
@@ -156,7 +164,7 @@ html, body, [class*="css"] {
     font-family: 'Montserrat', sans-serif;
     font-size: 1.05rem;
     font-weight: 800;
-    color: var(--white);
+    color: var(--ink);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     border-left: 4px solid var(--gold);
@@ -172,6 +180,7 @@ html, body, [class*="css"] {
     border-radius: 12px;
     padding: 1.2rem 1.4rem;
     text-align: center;
+    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
 }
 .goal-card .gc-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
 .goal-card .gc-label { font-family: 'Montserrat', sans-serif; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); font-weight: 600; }
@@ -183,7 +192,7 @@ html, body, [class*="css"] {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
     border-radius: 8px !important;
-    color: var(--white) !important;
+    color: var(--ink) !important;
 }
 .stSelectbox label { font-family: 'Montserrat', sans-serif; font-size: 0.68rem !important; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate) !important; font-weight: 600 !important; }
 
@@ -197,12 +206,13 @@ html, body, [class*="css"] {
 
 /* ── Prediction result card ── */
 .pred-card {
-    background: linear-gradient(135deg, var(--card), rgba(194,162,77,0.08));
+    background: linear-gradient(135deg, var(--card), rgba(184,146,58,0.06));
     border: 1px solid var(--gold);
     border-radius: 14px;
     padding: 2rem;
     text-align: center;
     margin-top: 1rem;
+    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
 }
 .pred-winner {
     font-family: 'Montserrat', sans-serif;
@@ -215,44 +225,71 @@ html, body, [class*="css"] {
 
 /* ── H2H bar ── */
 .h2h-bar { display: flex; border-radius: 8px; overflow: hidden; height: 28px; margin: 0.5rem 0; }
-.h2h-t1  { background: #C2A24D; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#fff; }
-.h2h-draw { background: #2A3830; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#9CA3AF; }
-.h2h-t2  { background: #134E4A; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#0A0A0A; }
+.h2h-t1  { background: #B8923A; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#fff; }
+.h2h-draw { background: #E4E1D4; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#6B7280; }
+.h2h-t2  { background: #134E4A; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#fff; }
 
 /* Shootout top card */
 .shoot-top {
-    background: linear-gradient(135deg, rgba(194,162,77,0.15), rgba(19,78,74,0.15));
+    background: linear-gradient(135deg, rgba(184,146,58,0.10), rgba(19,78,74,0.08));
     border: 1px solid var(--gold);
     border-radius: 14px;
     padding: 1.5rem 2rem;
     text-align: center;
     margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
 }
 .shoot-top .st-rank { font-family: 'Montserrat', sans-serif; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
-.shoot-top .st-name { font-family: 'Montserrat', sans-serif; font-size: 2.2rem; font-weight: 900; color: var(--white); text-transform: uppercase; }
+.shoot-top .st-name { font-family: 'Montserrat', sans-serif; font-size: 2.2rem; font-weight: 900; color: var(--ink); text-transform: uppercase; }
 .shoot-top .st-wins { font-size: 0.85rem; color: var(--slate); }
 
-/* plotly chart bg */
+/* ── Model metrics cards (Prediction tab) ── */
+.metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(26,31,28,0.04);
+}
+.metric-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--slate);
+    font-weight: 600;
+}
+.metric-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--green);
+}
+
+/* dataframe styling tweak so tables sit on white cards, not dark */
+[data-testid="stDataFrame"] { border: 1px solid var(--border); border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PLOTLY THEME HELPER
 # ─────────────────────────────────────────────────────────────────────────────
-NAVY   = "#0A0A0A"
-NAVY2  = "#1F2A24"
-GOLD   = "#C2A24D"
+BG     = "#FAF9F4"
+BG2    = "#F2F0E6"
+GOLD   = "#B8923A"
 GOLD2  = "#D4B56A"
-SLATE  = "#9CA3AF"
-WHITE  = "#F5F5E9"
-BLUE   = "#134E4A"
-RED    = "#E05A5A"
+SLATE  = "#6B7280"
+INK    = "#1A1F1C"
+GREEN  = "#134E4A"
+RED    = "#C2453B"
+GRID   = "#E4E1D4"
 
 def base_layout(**kw):
     return dict(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, Montserrat, sans-serif", color=WHITE, size=12),
+        font=dict(family="Inter, Montserrat, sans-serif", color=INK, size=12),
         legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color=SLATE)),
         margin=dict(l=10, r=10, t=40, b=10),
         **kw
@@ -340,6 +377,11 @@ def build_team_features(df_results):
 
 @st.cache_resource
 def train_model(df_4yr, team_features):
+    """
+    Trains the match-outcome model and also computes evaluation metrics
+    (accuracy, precision, recall, F1, confusion matrix) on a held-out test
+    split so the Prediction tab can surface model quality to the user.
+    """
     rows = []
     for _, m in df_4yr.iterrows():
         t1, t2 = m["home_team"], m["away_team"]
@@ -359,7 +401,21 @@ def train_model(df_4yr, team_features):
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
     model = LogisticRegression(max_iter=1000)
     model.fit(X_tr, y_tr)
-    return model
+
+    # ── evaluation metrics on the held-out test split ──────────────────────
+    y_pred = model.predict(X_te)
+    labels = model.classes_
+
+    metrics = {
+        "accuracy":  accuracy_score(y_te, y_pred),
+        "precision": precision_score(y_te, y_pred, average="weighted", zero_division=0),
+        "recall":    recall_score(y_te, y_pred, average="weighted", zero_division=0),
+        "f1":        f1_score(y_te, y_pred, average="weighted", zero_division=0),
+        "confusion_matrix": confusion_matrix(y_te, y_pred, labels=labels),
+        "labels": list(labels),
+        "report": classification_report(y_te, y_pred, zero_division=0, output_dict=True),
+    }
+    return model, metrics
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -367,7 +423,7 @@ def train_model(df_4yr, team_features):
 # ─────────────────────────────────────────────────────────────────────────────
 df_results, df_goals, df_shootout = load_data()
 team_features, df_4yr = build_team_features(df_results)
-model = train_model(df_4yr, team_features)
+model, model_metrics = train_model(df_4yr, team_features)
 
 all_tournaments = sorted(df_results["tournament"].dropna().unique().tolist())
 all_teams       = sorted(pd.unique(pd.concat([df_results["home_team"], df_results["away_team"]])).tolist())
@@ -437,9 +493,9 @@ with tab_overview:
     yr_count = dff.groupby(dff["date"].dt.year).size().reset_index(name="matches")
     yr_count.columns = ["year", "matches"]
     fig_yr = px.area(yr_count, x="year", y="matches", color_discrete_sequence=[GOLD])
-    fig_yr.update_traces(fillcolor="rgba(201,168,76,0.15)", line_color=GOLD)
+    fig_yr.update_traces(fillcolor="rgba(184,146,58,0.15)", line_color=GOLD)
     fig_yr.update_xaxes(showgrid=False, color=SLATE)
-    fig_yr.update_yaxes(showgrid=True, gridcolor="#2A3830", color=SLATE)
+    fig_yr.update_yaxes(showgrid=True, gridcolor=GRID, color=SLATE)
     fig_yr.update_layout(**base_layout(height=300))
     st.plotly_chart(fig_yr, use_container_width=True)
 
@@ -447,10 +503,10 @@ with tab_overview:
     top_teams = mp.sort_values(ascending=False).head(15).reset_index()
     top_teams.columns = ["team", "matches"]
     fig_top = px.bar(top_teams, x="matches", y="team", orientation="h", color="matches",
-                     color_continuous_scale=[[0, NAVY2],[1, GOLD]])
+                     color_continuous_scale=[[0, BG2],[1, GOLD]])
     fig_top.update_layout(**base_layout(height=420), coloraxis_showscale=False,
                           yaxis=dict(autorange="reversed", color=SLATE),
-                          xaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE))
+                          xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
     st.plotly_chart(fig_top, use_container_width=True)
 
 
@@ -496,8 +552,8 @@ with tab_team:
                     labels=["Home Wins", "Away Wins"],
                     values=[home_wins, away_wins],
                     hole=0.55,
-                    marker_colors=[GOLD, BLUE],
-                    textfont_color=WHITE,
+                    marker_colors=[GOLD, GREEN],
+                    textfont_color=INK,
                 ))
                 fig_pie.update_layout(**base_layout(height=300), showlegend=True)
                 st.plotly_chart(fig_pie, use_container_width=True)
@@ -509,7 +565,7 @@ with tab_team:
                 fig_bar.add_trace(go.Bar(name="Draws",  x=["Result"], y=[total_d], marker_color=SLATE))
                 fig_bar.add_trace(go.Bar(name="Losses", x=["Result"], y=[total_l], marker_color=RED))
                 fig_bar.update_layout(**base_layout(height=300), barmode="group",
-                                      xaxis=dict(color=SLATE), yaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE))
+                                      xaxis=dict(color=SLATE), yaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
                 st.plotly_chart(fig_bar, use_container_width=True)
 
             # form — last 10
@@ -522,11 +578,11 @@ with tab_team:
             badges = ""
             for _, row in recent.iterrows():
                 if row["winner"] == team:
-                    badges += '<span style="background:#C2A24D;color:#fff;padding:3px 10px;border-radius:4px;font-size:0.75rem;font-weight:700;margin:2px;font-family:Montserrat,sans-serif;">W</span> '
+                    badges += '<span style="background:#B8923A;color:#fff;padding:3px 10px;border-radius:4px;font-size:0.75rem;font-weight:700;margin:2px;font-family:Montserrat,sans-serif;">W</span> '
                 elif row["winner"] == "Draw":
-                    badges += '<span style="background:#2A3830;color:#9CA3AF;padding:3px 10px;border-radius:4px;font-size:0.75rem;margin:2px;font-family:Montserrat,sans-serif;">D</span> '
+                    badges += '<span style="background:#E4E1D4;color:#6B7280;padding:3px 10px;border-radius:4px;font-size:0.75rem;margin:2px;font-family:Montserrat,sans-serif;">D</span> '
                 else:
-                    badges += '<span style="background:#1A1A10;color:#E05A5A;padding:3px 10px;border-radius:4px;font-size:0.75rem;margin:2px;font-family:Montserrat,sans-serif;">L</span> '
+                    badges += '<span style="background:#F7DEDC;color:#C2453B;padding:3px 10px;border-radius:4px;font-size:0.75rem;margin:2px;font-family:Montserrat,sans-serif;">L</span> '
             st.markdown(f'<div style="margin:0.5rem 0">{badges}</div>', unsafe_allow_html=True)
 
         else:
@@ -535,10 +591,10 @@ with tab_team:
             wins_all = dft[dft["winner"] != "Draw"]["winner"].value_counts().head(10).reset_index()
             wins_all.columns = ["team", "wins"]
             fig_wa = px.bar(wins_all, x="wins", y="team", orientation="h",
-                            color="wins", color_continuous_scale=[[0,NAVY2],[1,GOLD]])
+                            color="wins", color_continuous_scale=[[0,BG2],[1,GOLD]])
             fig_wa.update_layout(**base_layout(height=400), coloraxis_showscale=False,
                                  yaxis=dict(autorange="reversed", color=SLATE),
-                                 xaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE))
+                                 xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
             st.plotly_chart(fig_wa, use_container_width=True)
 
 
@@ -646,9 +702,9 @@ with tab_stats:
         fig_line = go.Figure()
         fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp[s_t1], name=s_t1, line=dict(color=GOLD, width=2), mode="lines+markers"))
         fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp["Draw"], name="Draw", line=dict(color=SLATE, width=1.5, dash="dot"), mode="lines+markers"))
-        fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp[s_t2], name=s_t2, line=dict(color=BLUE, width=2), mode="lines+markers"))
+        fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp[s_t2], name=s_t2, line=dict(color=GREEN, width=2), mode="lines+markers"))
         fig_line.update_xaxes(showgrid=False, color=SLATE)
-        fig_line.update_yaxes(showgrid=True, gridcolor="#2A3830", color=SLATE, title="Win %")
+        fig_line.update_yaxes(showgrid=True, gridcolor=GRID, color=SLATE, title="Win %")
         fig_line.update_layout(**base_layout(height=320))
         st.plotly_chart(fig_line, use_container_width=True)
 
@@ -702,16 +758,61 @@ with tab_predict:
 
             fig_prob = go.Figure(go.Bar(
                 x=[p_t1, "Draw", p_t2], y=[t1_p, draw_p, t2_p],
-                marker_color=[GOLD, SLATE, BLUE],
+                marker_color=[GOLD, SLATE, GREEN],
                 text=[f"{v}%" for v in [t1_p, draw_p, t2_p]],
-                textposition="outside", textfont_color=WHITE
+                textposition="outside", textfont_color=INK
             ))
             fig_prob.update_layout(**base_layout(height=280),
-                                   yaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE, range=[0,100]),
+                                   yaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE, range=[0,100]),
                                    xaxis=dict(color=SLATE))
             st.plotly_chart(fig_prob, use_container_width=True)
 
-    st.markdown(f'<div class="pred-warn">⚠ Disclaimer: This prediction is generated by a logistic regression model trained on historical match data. The model has a validated accuracy of approximately 54%, which reflects the inherently unpredictable nature of football. Results should be treated as indicative only and not used for wagering or official purposes.</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="pred-warn">⚠ Disclaimer: This prediction is generated by a logistic regression model trained on historical match data. Results should be treated as indicative only and not used for wagering or official purposes.</div>', unsafe_allow_html=True)
+
+    # ── Model performance section ───────────────────────────────────────────
+    st.markdown('<div class="section-title">Model Performance</div>', unsafe_allow_html=True)
+
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.markdown(f'<div class="metric-card"><div class="metric-label">Accuracy</div><div class="metric-val">{model_metrics["accuracy"]*100:.1f}%</div></div>', unsafe_allow_html=True)
+    mc2.markdown(f'<div class="metric-card"><div class="metric-label">Precision</div><div class="metric-val">{model_metrics["precision"]*100:.1f}%</div></div>', unsafe_allow_html=True)
+    mc3.markdown(f'<div class="metric-card"><div class="metric-label">Recall</div><div class="metric-val">{model_metrics["recall"]*100:.1f}%</div></div>', unsafe_allow_html=True)
+    mc4.markdown(f'<div class="metric-card"><div class="metric-label">F1 Score</div><div class="metric-val">{model_metrics["f1"]*100:.1f}%</div></div>', unsafe_allow_html=True)
+
+    st.markdown(f'<div class="pred-warn">Metrics computed on a held-out 20% test split (weighted average across draw / team1 / team2 classes).</div>', unsafe_allow_html=True)
+
+    mcol1, mcol2 = st.columns([1, 1])
+    with mcol1:
+        st.markdown('<div class="section-title" style="font-size:0.9rem">Confusion Matrix</div>', unsafe_allow_html=True)
+        cm = model_metrics["confusion_matrix"]
+        cm_labels = model_metrics["labels"]
+        fig_cm = go.Figure(data=go.Heatmap(
+            z=cm,
+            x=[f"Pred: {l}" for l in cm_labels],
+            y=[f"Actual: {l}" for l in cm_labels],
+            colorscale=[[0, BG2], [1, GOLD]],
+            text=cm,
+            texttemplate="%{text}",
+            textfont={"color": INK, "size": 14},
+            showscale=False,
+        ))
+        fig_cm.update_layout(**base_layout(height=320), yaxis=dict(autorange="reversed"))
+        st.plotly_chart(fig_cm, use_container_width=True)
+
+    with mcol2:
+        st.markdown('<div class="section-title" style="font-size:0.9rem">Per-Class Breakdown</div>', unsafe_allow_html=True)
+        report = model_metrics["report"]
+        report_rows = []
+        for lbl in cm_labels:
+            if lbl in report:
+                report_rows.append({
+                    "Class": lbl,
+                    "Precision": round(report[lbl]["precision"], 2),
+                    "Recall": round(report[lbl]["recall"], 2),
+                    "F1": round(report[lbl]["f1-score"], 2),
+                    "Support": int(report[lbl]["support"]),
+                })
+        report_df = pd.DataFrame(report_rows)
+        st.dataframe(report_df, use_container_width=True, hide_index=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -748,7 +849,7 @@ with tab_goals:
             labels=["First Half", "Second Half", "Extra Time"],
             values=[goal_fhalf, goal_shalf, goal_extra],
             hole=0.6,
-            marker_colors=[GOLD, BLUE, RED],
+            marker_colors=[GOLD, GREEN, RED],
         ))
         fig_donut.update_layout(**base_layout(height=300))
         st.plotly_chart(fig_donut, use_container_width=True)
@@ -787,12 +888,12 @@ with tab_goals:
     top5 = clean_goals["scorer"].value_counts().head(5).reset_index()
     top5.columns = ["scorer", "goals"]
     fig_top5 = px.bar(top5, x="goals", y="scorer", orientation="h",
-                      color="goals", color_continuous_scale=[[0,NAVY2],[1,GOLD]],
+                      color="goals", color_continuous_scale=[[0,BG2],[1,GOLD]],
                       text="goals")
-    fig_top5.update_traces(textfont_color=WHITE, textposition="outside")
+    fig_top5.update_traces(textfont_color=INK, textposition="outside")
     fig_top5.update_layout(**base_layout(height=300), coloraxis_showscale=False,
                            yaxis=dict(autorange="reversed", color=SLATE),
-                           xaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE))
+                           xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
     st.plotly_chart(fig_top5, use_container_width=True)
 
 
@@ -830,10 +931,10 @@ with tab_shootout:
             gauge={
                 "axis": {"range":[0,100], "tickcolor":SLATE},
                 "bar":  {"color": GOLD},
-                "bgcolor": NAVY2,
-                "bordercolor": "#2A3830",
-                "steps": [{"range":[0,50],"color":NAVY2},{"range":[50,100],"color":"#1A2420"}],
-                "threshold": {"line":{"color":WHITE,"width":2},"thickness":0.75,"value":50}
+                "bgcolor": BG2,
+                "bordercolor": GRID,
+                "steps": [{"range":[0,50],"color":BG2},{"range":[50,100],"color":"#EDEAD9"}],
+                "threshold": {"line":{"color":INK,"width":2},"thickness":0.75,"value":50}
             }
         ))
         fig_gauge.update_layout(**base_layout(height=280))
@@ -843,12 +944,12 @@ with tab_shootout:
         st.markdown('<div class="section-title">Top 5 — Most Shootout Wins</div>', unsafe_allow_html=True)
         top5_shoot["rank"] = range(1, len(top5_shoot)+1)
         fig_sh = px.bar(top5_shoot, x="wins", y="team", orientation="h",
-                        color="wins", color_continuous_scale=[[0,NAVY2],[1,GOLD]],
+                        color="wins", color_continuous_scale=[[0,BG2],[1,GOLD]],
                         text="wins")
-        fig_sh.update_traces(textfont_color=WHITE, textposition="outside")
+        fig_sh.update_traces(textfont_color=INK, textposition="outside")
         fig_sh.update_layout(**base_layout(height=280), coloraxis_showscale=False,
                              yaxis=dict(autorange="reversed", color=SLATE),
-                             xaxis=dict(showgrid=True, gridcolor="#2A3830", color=SLATE))
+                             xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
         st.plotly_chart(fig_sh, use_container_width=True)
 
     # Full shootout table
