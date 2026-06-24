@@ -542,7 +542,7 @@ with tab_overview:
     fig_top.update_layout(**base_layout(height=420), coloraxis_showscale=False,
                           yaxis=dict(autorange="reversed", color=GOLD),
                           xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
-    st.plotly_chart(fig_top, use_container_width=True)
+    st.plotly_chart(fig_top, use_container_width=True, theme=None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -630,7 +630,7 @@ with tab_team:
             fig_wa.update_layout(**base_layout(height=400), coloraxis_showscale=False,
                                  yaxis=dict(autorange="reversed", color=GOLD),
                                  xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
-            st.plotly_chart(fig_wa, use_container_width=True)
+            st.plotly_chart(fig_wa, use_container_width=True, theme=None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -899,7 +899,7 @@ with tab_goals:
     fig_top5.update_layout(**base_layout(height=300), coloraxis_showscale=False,
                            yaxis=dict(autorange="reversed", color=GOLD),
                            xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
-    st.plotly_chart(fig_top5, use_container_width=True)
+    st.plotly_chart(fig_top5, use_container_width=True, theme=None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -955,4 +955,4 @@ with tab_shootout:
         fig_sh.update_layout(**base_layout(height=280), coloraxis_showscale=False,
                              yaxis=dict(autorange="reversed", color=GOLD),
                              xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
-        st.plotly_chart(fig_sh, use_container_width=True)
+        st.plotly_chart(fig_sh, use_container_width=True, theme=None)
