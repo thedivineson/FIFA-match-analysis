@@ -533,8 +533,8 @@ with tab_overview:
     yr_count.columns = ["year", "matches"]
     fig_yr = px.area(yr_count, x="year", y="matches", color_discrete_sequence=[GOLD])
     fig_yr.update_traces(fillcolor="rgba(184,146,58,0.15)", line_color=GOLD)
-    fig_yr.update_xaxes(showgrid=False, color=INK, title="Year", automargin=True)
-    fig_yr.update_yaxes(showgrid=True, gridcolor=GRID, color=INK, title="Matches", automargin=True)
+    fig_yr.update_xaxes(showgrid=False, color=GOLD, tickfont=dict(color=GOLD), title="Year", automargin=True)
+    fig_yr.update_yaxes(showgrid=True, gridcolor=GRID, color=GOLD, tickfont=dict(color=GOLD), title="Matches", automargin=True)
     fig_yr.update_layout(**base_layout(height=300))
     st.plotly_chart(fig_yr, use_container_width=True, theme=None)
 
@@ -546,9 +546,11 @@ with tab_overview:
                      color_continuous_scale=[[0, GOLD_LT],[1, GOLD]])
     fig_top.update_traces(cliponaxis=False)
     fig_top.update_layout(**base_layout(height=420), coloraxis_showscale=False,
-                          yaxis=dict(autorange="reversed", color=INK, automargin=True,
-                                     title=dict(text="Team", standoff=12)),
-                          xaxis=dict(showgrid=True, gridcolor=GRID, color=INK, automargin=True,
+                          yaxis=dict(autorange="reversed", color=GOLD, automargin=True,
+                                     tickfont=dict(color=GOLD), ticklabelstandoff=10,
+                                     title=dict(text="Team", standoff=20)),
+                          xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, automargin=True,
+                                     tickfont=dict(color=GOLD),
                                      range=[0, top_teams["matches"].max()*1.15],
                                      title=dict(text="Matches", standoff=8)))
     st.plotly_chart(fig_top, use_container_width=True, theme=None)
@@ -609,8 +611,8 @@ with tab_team:
                 fig_bar.add_trace(go.Bar(name="Draws",  x=["Result"], y=[total_d], marker_color=SLATE))
                 fig_bar.add_trace(go.Bar(name="Losses", x=["Result"], y=[total_l], marker_color=RED))
                 fig_bar.update_layout(**base_layout(height=300), barmode="group",
-                                      xaxis=dict(color=INK, title=dict(text="Result", standoff=8), automargin=True),
-                                      yaxis=dict(showgrid=True, gridcolor=GRID, color=INK, title=dict(text="Count", standoff=8), automargin=True))
+                                      xaxis=dict(color=GOLD, tickfont=dict(color=GOLD), title=dict(text="Result", standoff=8), automargin=True),
+                                      yaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, tickfont=dict(color=GOLD), title=dict(text="Count", standoff=8), automargin=True))
                 st.plotly_chart(fig_bar, use_container_width=True, theme=None)
 
             # form — last 10
@@ -640,9 +642,11 @@ with tab_team:
                             color="wins", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]])
             fig_wa.update_traces(cliponaxis=False)
             fig_wa.update_layout(**base_layout(height=400), coloraxis_showscale=False,
-                                 yaxis=dict(autorange="reversed", color=INK, automargin=True,
-                                            title=dict(text="Team", standoff=12)),
-                                 xaxis=dict(showgrid=True, gridcolor=GRID, color=INK, automargin=True,
+                                 yaxis=dict(autorange="reversed", color=GOLD, automargin=True,
+                                            tickfont=dict(color=GOLD), ticklabelstandoff=10,
+                                            title=dict(text="Team", standoff=20)),
+                                 xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, automargin=True,
+                                            tickfont=dict(color=GOLD),
                                             range=[0, wins_all["wins"].max()*1.15],
                                             title=dict(text="Wins", standoff=8)))
             st.plotly_chart(fig_wa, use_container_width=True, theme=None)
@@ -753,8 +757,8 @@ with tab_stats:
         fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp[s_t1], name=s_t1, line=dict(color=GOLD, width=2), mode="lines+markers"))
         fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp["Draw"], name="Draw", line=dict(color=SLATE, width=1.5, dash="dot"), mode="lines+markers"))
         fig_line.add_trace(go.Scatter(x=yr_grp["year"], y=yr_grp[s_t2], name=s_t2, line=dict(color=GREEN, width=2), mode="lines+markers"))
-        fig_line.update_xaxes(showgrid=False, color=INK, title="Year", automargin=True)
-        fig_line.update_yaxes(showgrid=True, gridcolor=GRID, color=INK, title="Win %", automargin=True)
+        fig_line.update_xaxes(showgrid=False, color=GOLD, tickfont=dict(color=GOLD), title="Year", automargin=True)
+        fig_line.update_yaxes(showgrid=True, gridcolor=GRID, color=GOLD, tickfont=dict(color=GOLD), title="Win %", automargin=True)
         fig_line.update_layout(**base_layout(height=320))
         st.plotly_chart(fig_line, use_container_width=True, theme=None)
 
@@ -810,13 +814,13 @@ with tab_predict:
                 x=[cap_first(p_t1), "Draw", cap_first(p_t2)], y=[t1_p, draw_p, t2_p],
                 marker_color=[GOLD, SLATE, GREEN],
                 text=[f"{v}%" for v in [t1_p, draw_p, t2_p]],
-                textposition="outside", textfont_color=INK
+                textposition="outside", textfont_color=GOLD
             ))
             fig_prob.update_traces(cliponaxis=False)
             fig_prob.update_layout(**base_layout(height=280),
-                                   yaxis=dict(showgrid=True, gridcolor=GRID, color=INK, range=[0,108],
+                                   yaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, tickfont=dict(color=GOLD), range=[0,108],
                                               title=dict(text="Win Probability (%)", standoff=8), automargin=True),
-                                   xaxis=dict(color=INK, title=dict(text="Outcome", standoff=8), automargin=True))
+                                   xaxis=dict(color=GOLD, tickfont=dict(color=GOLD), title=dict(text="Outcome", standoff=8), automargin=True))
             st.plotly_chart(fig_prob, use_container_width=True, theme=None)
 
     st.markdown(f'<div class="pred-warn">⚠ Disclaimer: This prediction is generated by a logistic regression model trained on historical match data. Results should be treated as indicative only and not used for wagering or official purposes.</div>', unsafe_allow_html=True)
@@ -913,11 +917,13 @@ with tab_goals:
     fig_top5 = px.bar(top5, x="goals", y="scorer", orientation="h",
                       color="goals", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]],
                       text="goals")
-    fig_top5.update_traces(textfont_color=INK, textposition="outside", cliponaxis=False)
+    fig_top5.update_traces(textfont_color=GOLD, textposition="outside", cliponaxis=False)
     fig_top5.update_layout(**base_layout(height=300), coloraxis_showscale=False,
-                           yaxis=dict(autorange="reversed", color=INK, automargin=True,
-                                      title=dict(text="Scorer", standoff=12)),
-                           xaxis=dict(showgrid=True, gridcolor=GRID, color=INK, automargin=True,
+                           yaxis=dict(autorange="reversed", color=GOLD, automargin=True,
+                                      tickfont=dict(color=GOLD), ticklabelstandoff=10,
+                                      title=dict(text="Scorer", standoff=20)),
+                           xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, automargin=True,
+                                      tickfont=dict(color=GOLD),
                                       range=[0, top5["goals"].max()*1.2],
                                       title=dict(text="Goals", standoff=8)))
     st.plotly_chart(fig_top5, use_container_width=True, theme=None)
@@ -973,11 +979,13 @@ with tab_shootout:
         fig_sh = px.bar(top5_shoot, x="wins", y="team", orientation="h",
                         color="wins", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]],
                         text="wins")
-        fig_sh.update_traces(textfont_color=INK, textposition="outside", cliponaxis=False)
+        fig_sh.update_traces(textfont_color=GOLD, textposition="outside", cliponaxis=False)
         fig_sh.update_layout(**base_layout(height=280), coloraxis_showscale=False,
-                             yaxis=dict(autorange="reversed", color=INK, automargin=True,
-                                        title=dict(text="Team", standoff=12)),
-                             xaxis=dict(showgrid=True, gridcolor=GRID, color=INK, automargin=True,
+                             yaxis=dict(autorange="reversed", color=GOLD, automargin=True,
+                                        tickfont=dict(color=GOLD), ticklabelstandoff=10,
+                                        title=dict(text="Team", standoff=20)),
+                             xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD, automargin=True,
+                                        tickfont=dict(color=GOLD),
                                         range=[0, top5_shoot["wins"].max()*1.2],
                                         title=dict(text="Wins", standoff=8)))
         st.plotly_chart(fig_sh, use_container_width=True, theme=None)
