@@ -312,6 +312,7 @@ BG     = "#FAF9F4"
 BG2    = "#F2F0E6"
 GOLD   = "#B8923A"
 GOLD2  = "#D4B56A"
+GOLD_LT = "#C7A555"  # subtle lighten of GOLD — used for bar-chart gradients so low bars stay visible
 SLATE  = "#6B7280"
 INK    = "#1A1F1C"
 GREEN  = "#134E4A"
@@ -461,6 +462,7 @@ model, model_metrics = train_model(df_4yr, team_features)
 all_tournaments = sorted(df_results["tournament"].dropna().unique().tolist())
 all_teams       = sorted(pd.unique(pd.concat([df_results["home_team"], df_results["away_team"]])).tolist())
 all_countries   = sorted(df_results["country"].dropna().unique().tolist()) if "country" in df_results.columns else sorted(df_results["neutral"].unique().tolist())
+all_years       = sorted(pd.to_datetime(df_goals["date"]).dt.year.dropna().unique().tolist(), reverse=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HERO
@@ -536,10 +538,10 @@ with tab_overview:
     top_teams = mp.sort_values(ascending=False).head(15).reset_index()
     top_teams.columns = ["team", "matches"]
     fig_top = px.bar(top_teams, x="matches", y="team", orientation="h", color="matches",
-                     color_continuous_scale=[[0, BG2],[1, GOLD]])
+                     color_continuous_scale=[[0, GOLD_LT],[1, GOLD]])
     fig_top.update_layout(**base_layout(height=420), coloraxis_showscale=False,
-                          yaxis=dict(autorange="reversed", color=SLATE),
-                          xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
+                          yaxis=dict(autorange="reversed", color=GOLD),
+                          xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
     st.plotly_chart(fig_top, use_container_width=True)
 
 
@@ -624,10 +626,10 @@ with tab_team:
             wins_all = dft[dft["winner"] != "Draw"]["winner"].value_counts().head(10).reset_index()
             wins_all.columns = ["team", "wins"]
             fig_wa = px.bar(wins_all, x="wins", y="team", orientation="h",
-                            color="wins", color_continuous_scale=[[0,BG2],[1,GOLD]])
+                            color="wins", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]])
             fig_wa.update_layout(**base_layout(height=400), coloraxis_showscale=False,
-                                 yaxis=dict(autorange="reversed", color=SLATE),
-                                 xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
+                                 yaxis=dict(autorange="reversed", color=GOLD),
+                                 xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
             st.plotly_chart(fig_wa, use_container_width=True)
 
 
@@ -818,11 +820,13 @@ with tab_predict:
 # TAB 5 — GOALS
 # ════════════════════════════════════════════════════════════════════════════
 with tab_goals:
-    gc1, gc2 = st.columns(2)
+    gc1, gc2, gc3 = st.columns(3)
     with gc1:
         g_tour = st.selectbox("Tournament", ["All Tournaments"] + all_tournaments, key="goals_tour")
     with gc2:
         g_team = st.selectbox("Team", ["All Teams"] + all_teams, key="goals_team")
+    with gc3:
+        g_year = st.selectbox("Year", ["All Years"] + all_years, key="goals_year")
 
     dfg = df_goals.copy()
     if g_tour != "All Tournaments":
@@ -830,6 +834,8 @@ with tab_goals:
         dfg = dfg[pd.to_datetime(dfg["date"]).dt.date.isin(tour_dates)]
     if g_team != "All Teams":
         dfg = dfg[dfg["team"] == g_team] if "team" in dfg.columns else dfg[dfg["scorer"].notna()]
+    if g_year != "All Years":
+        dfg = dfg[pd.to_datetime(dfg["date"]).dt.year == g_year]
 
     goal_fhalf  = (dfg["minute"] <= 45).sum()
     goal_shalf  = ((dfg["minute"] > 45) & (dfg["minute"] <= 90)).sum()
@@ -887,12 +893,12 @@ with tab_goals:
     top5 = clean_goals["scorer"].value_counts().head(5).reset_index()
     top5.columns = ["scorer", "goals"]
     fig_top5 = px.bar(top5, x="goals", y="scorer", orientation="h",
-                      color="goals", color_continuous_scale=[[0,BG2],[1,GOLD]],
+                      color="goals", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]],
                       text="goals")
     fig_top5.update_traces(textfont_color=INK, textposition="outside")
     fig_top5.update_layout(**base_layout(height=300), coloraxis_showscale=False,
-                           yaxis=dict(autorange="reversed", color=SLATE),
-                           xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
+                           yaxis=dict(autorange="reversed", color=GOLD),
+                           xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
     st.plotly_chart(fig_top5, use_container_width=True)
 
 
@@ -943,16 +949,10 @@ with tab_shootout:
         st.markdown('<div class="section-title">Top 5 — Most Shootout Wins</div>', unsafe_allow_html=True)
         top5_shoot["rank"] = range(1, len(top5_shoot)+1)
         fig_sh = px.bar(top5_shoot, x="wins", y="team", orientation="h",
-                        color="wins", color_continuous_scale=[[0,BG2],[1,GOLD]],
+                        color="wins", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]],
                         text="wins")
         fig_sh.update_traces(textfont_color=INK, textposition="outside")
         fig_sh.update_layout(**base_layout(height=280), coloraxis_showscale=False,
-                             yaxis=dict(autorange="reversed", color=SLATE),
-                             xaxis=dict(showgrid=True, gridcolor=GRID, color=SLATE))
+                             yaxis=dict(autorange="reversed", color=GOLD),
+                             xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
         st.plotly_chart(fig_sh, use_container_width=True)
-
-    # Full shootout table
-    st.markdown('<div class="section-title">All Shootout Records</div>', unsafe_allow_html=True)
-    shoot_disp = df_shootout[["date","home_team","away_team","winner","first_shooter"]].copy()
-    shoot_disp.columns = ["Date","Home","Away","Winner","First Shooter"]
-    st.dataframe(shoot_disp.sort_values("Date", ascending=False).reset_index(drop=True), use_container_width=True)
