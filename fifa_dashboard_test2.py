@@ -537,10 +537,11 @@ with tab_overview:
     st.markdown('<div class="section-title">Top 15 Teams by Matches Played</div>', unsafe_allow_html=True)
     top_teams = mp.sort_values(ascending=False).head(15).reset_index()
     top_teams.columns = ["team", "matches"]
+    top_teams["team"] = top_teams["team"].apply(lambda s: s[:1].upper() + s[1:] if isinstance(s, str) and s else s)
     fig_top = px.bar(top_teams, x="matches", y="team", orientation="h", color="matches",
                      color_continuous_scale=[[0, GOLD_LT],[1, GOLD]])
     fig_top.update_layout(**base_layout(height=420), coloraxis_showscale=False,
-                          yaxis=dict(autorange="reversed", color=GOLD),
+                          yaxis=dict(autorange="reversed", color=GOLD, automargin=True),
                           xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
     st.plotly_chart(fig_top, use_container_width=True, theme=None)
 
@@ -625,10 +626,11 @@ with tab_team:
             st.markdown('<div class="section-title">Top 10 Teams by Wins</div>', unsafe_allow_html=True)
             wins_all = dft[dft["winner"] != "Draw"]["winner"].value_counts().head(10).reset_index()
             wins_all.columns = ["team", "wins"]
+            wins_all["team"] = wins_all["team"].apply(lambda s: s[:1].upper() + s[1:] if isinstance(s, str) and s else s)
             fig_wa = px.bar(wins_all, x="wins", y="team", orientation="h",
                             color="wins", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]])
             fig_wa.update_layout(**base_layout(height=400), coloraxis_showscale=False,
-                                 yaxis=dict(autorange="reversed", color=GOLD),
+                                 yaxis=dict(autorange="reversed", color=GOLD, automargin=True),
                                  xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
             st.plotly_chart(fig_wa, use_container_width=True, theme=None)
 
@@ -892,12 +894,13 @@ with tab_goals:
     clean_goals = dfg[dfg["own_goal"]==False]
     top5 = clean_goals["scorer"].value_counts().head(5).reset_index()
     top5.columns = ["scorer", "goals"]
+    top5["scorer"] = top5["scorer"].apply(lambda s: s[:1].upper() + s[1:] if isinstance(s, str) and s else s)
     fig_top5 = px.bar(top5, x="goals", y="scorer", orientation="h",
                       color="goals", color_continuous_scale=[[0,GOLD_LT],[1,GOLD]],
                       text="goals")
     fig_top5.update_traces(textfont_color=INK, textposition="outside")
     fig_top5.update_layout(**base_layout(height=300), coloraxis_showscale=False,
-                           yaxis=dict(autorange="reversed", color=GOLD),
+                           yaxis=dict(autorange="reversed", color=GOLD, automargin=True),
                            xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
     st.plotly_chart(fig_top5, use_container_width=True, theme=None)
 
@@ -913,6 +916,7 @@ with tab_shootout:
 
     top5_shoot = df_shootout["winner"].value_counts().head(5).reset_index()
     top5_shoot.columns = ["team", "wins"]
+    top5_shoot["team"] = top5_shoot["team"].apply(lambda s: s[:1].upper() + s[1:] if isinstance(s, str) and s else s)
 
     rank1 = top5_shoot.iloc[0]
 
@@ -953,6 +957,6 @@ with tab_shootout:
                         text="wins")
         fig_sh.update_traces(textfont_color=INK, textposition="outside")
         fig_sh.update_layout(**base_layout(height=280), coloraxis_showscale=False,
-                             yaxis=dict(autorange="reversed", color=GOLD),
+                             yaxis=dict(autorange="reversed", color=GOLD, automargin=True),
                              xaxis=dict(showgrid=True, gridcolor=GRID, color=GOLD))
         st.plotly_chart(fig_sh, use_container_width=True, theme=None)
